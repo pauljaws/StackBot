@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+require('dotenv').config();
 
 const app = express();
 const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN;
