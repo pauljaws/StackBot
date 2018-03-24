@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-const VERIFY_TOKEN = 'ZgpZ8fBQWZSW7gyuHJbhfCNpqr1Sw5IN';
+const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
