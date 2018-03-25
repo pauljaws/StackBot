@@ -31,7 +31,8 @@ function sendToMessenger(senderPsid, response) {
     json: reqBody,
   }, (err) => {
     if (!err) {
-      console.log('message sent!');
+      console.log('Message sent!');
+      console.log(reqBody);
     } else {
       console.error(`Unable to send message: ${err}`);
     }
