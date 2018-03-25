@@ -1,17 +1,20 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
+const apiai = require('apiai');
 require('dotenv').config();
 
 const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || '';
 const PAGE_TOKEN = process.env.FB_PAGE_TOKEN || '';
+const DF_ACCESS_TOKEN = process.env.DF_ACCESS_TOKEN || '';
+const apiaiApp = apiai(DF_ACCESS_TOKEN);
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Sends response messages via the Send API
-function callSendAPI(senderPsid, response) {
+// Sends response messages via the Send API to FB Messenger
+function sendToMessenger(senderPsid, response) {
   // Construct the message body
   const reqBody = {
     recipient: {
@@ -37,24 +40,30 @@ function callSendAPI(senderPsid, response) {
 
 // Handles messages events
 function handleMessage(senderPsid, receivedMessage) {
-  let response;
-
   // Check if the message contains text
   if (receivedMessage.text) {
-    // Create the payload for a basic text message
-    response = {
-      text: `Message received: "${receivedMessage.text}".`,
+    // Send to DialogFlow for handling
+    apiaiApp.textRequest(receivedMessage.text, { sessionId: senderPsid })
+      .on('response', (response) => {
+        sendToMessenger(senderPsid, response.result.fulfillment.speech);
+      })
+      .on('error', (error) => {
+        console.error(error);
+      })
+      .end();
+  } else if (receivedMessage.attachments) {
+    const response = {
+      text: 'Sorry, I\'m not smart enough to respond to attachments yet.',
     };
+    // Sends the response message
+    sendToMessenger(senderPsid, response);
   }
-
-  // Sends the response message
-  callSendAPI(senderPsid, response);
 }
 
 // Handles messaging_postbacks events
-function handlePostback(senderPsid, receivedPostback) {
-
-}
+// function handlePostback(senderPsid, receivedPostback) {
+//
+// }
 
 // Adds support for GET requests to our webhook
 app.get('/webhook', (req, res) => {
@@ -95,8 +104,6 @@ app.post('/webhook', (req, res) => {
       // Check event type and pass to appropriate handler
       if (webhookEvent.message) {
         handleMessage(senderPsid, webhookEvent.message);
-      } else if (webhookEvent.postback) {
-        handlePostback(senderPsid, webhookEvent.postback);
       }
     });
 
