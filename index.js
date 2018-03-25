@@ -45,6 +45,8 @@ function handleMessage(senderPsid, receivedMessage) {
     // Send to DialogFlow for handling
     apiaiApp.textRequest(receivedMessage.text, { sessionId: senderPsid })
       .on('response', (response) => {
+        console.log('Response received from DialogFlow');
+        console.log(response);
         sendToMessenger(senderPsid, response.result.fulfillment.speech);
       })
       .on('error', (error) => {
