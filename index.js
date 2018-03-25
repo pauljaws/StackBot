@@ -45,7 +45,7 @@ function sendToMessenger(senderPsid, response) {
 function handleMessage(senderPsid, receivedMessage) {
   // Check if the message contains text
   if (receivedMessage.text) {
-    // Send to DialogFlow for handling
+    // Send to Dialogflow for handling
     apiaiApp.textRequest(receivedMessage.text, { sessionId: senderPsid })
       .on('response', (response) => {
         console.log('Response received from DialogFlow');
@@ -63,6 +63,17 @@ function handleMessage(senderPsid, receivedMessage) {
     // Sends the response message
     sendToMessenger(senderPsid, response);
   }
+}
+
+// Hit the StackShare API to look up tools for a given type
+function findTool(toolType) {
+  return new Promise((resolve, reject) => {
+    if (toolType === 'message queue') {
+      resolve({ name: 'RabbitMQ' });
+    } else {
+      reject(new Error('I couldn\'t find that tool, sorry.'));
+    }
+  });
 }
 
 // Handles messaging_postbacks events
@@ -91,7 +102,7 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-// Creates the endpoint for our webhook
+// Receive messages from FB Messenger
 app.post('/webhook', (req, res) => {
   const { body } = req;
 
@@ -117,6 +128,31 @@ app.post('/webhook', (req, res) => {
   } else {
     // Returns a '404 Not Found' if event is not from a page subscription
     res.sendStatus(404);
+  }
+});
+
+// Fulfillment webhook for Dialogflow
+app.post('/dialogflow', (req, res) => {
+  if (req.body.result.action === 'find-tool') {
+    const toolType = req.body.result.parameters['tool-type'];
+    // call StackShare API
+    findTool(toolType)
+      .then((toolResult) => {
+        console.log(toolResult);
+        const message = `The most popular ${toolType} on StackShare is ${toolResult}`;
+        // send the result back to Dialogflow
+        return res.json({
+          speech: message,
+          displayText: message,
+        });
+      }, (error) => {
+        console.error(error);
+        // send the error back to Dialogflow
+        return res.json({
+          speech: error.message,
+          displayText: error.message,
+        });
+      });
   }
 });
 
