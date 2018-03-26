@@ -184,7 +184,7 @@ app.post('/dialogflow', (req, res) => {
   if (req.body.result.action === 'find-tool') {
     const toolType = req.body.result.parameters['tool-type'];
     // call StackShare API
-    lookupToolType(toolType)
+    return lookupToolType(toolType)
       .then((toolResult) => {
         console.log('Tool result');
         console.log(toolResult);
@@ -202,12 +202,14 @@ app.post('/dialogflow', (req, res) => {
           displayText: error.message,
         });
       });
-  } else {
-    // not sure why this is being called for anything other than find-tool action
-    // handleMessage(req.body.sessionId, req.result.resolvedQuery);
-    console.log('Request for action other than find-tool');
-    console.log(req.body.result);
   }
+  // not sure why this is being called for anything other than find-tool action
+  console.log('Request for action other than find-tool');
+  console.log(req.body.result);
+  return res.json({
+    speech: req.body.result.fulfillment.speech,
+    displayText: req.body.result.fulfillment.speech,
+  });
 });
 
 const server = app.listen(process.env.PORT || 5000, () => {
