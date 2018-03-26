@@ -34,10 +34,11 @@ function sendToMessenger(senderPsid, response) {
     qs: { access_token: PAGE_TOKEN },
     method: 'POST',
     json: reqBody,
-  }, (err) => {
+  }, (err, res) => {
     if (!err) {
       console.log('Message sent!');
       console.log(reqBody);
+      console.log(res);
     } else {
       console.error(`Unable to send message: ${err}`);
     }
