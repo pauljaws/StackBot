@@ -72,8 +72,11 @@ function findToolTypeId(toolType) {
   const toolTypeSlug = slugify(toolType);
 
   return new Promise((resolve, reject) => {
-    mongodb.MongoClient.connect(MONGODB_URI, (err, db) => {
+    mongodb.MongoClient.connect(MONGODB_URI, (err, client) => {
       if (!err) {
+        console.log('mongo client object');
+        console.log(client);
+        const db = client.db('heroku_lzls7pcp');
         db.collection('functions').findOne(
           { slug: toolTypeSlug },
           (error, doc) => {
@@ -195,6 +198,9 @@ app.post('/dialogflow', (req, res) => {
           displayText: error.message,
         });
       });
+  } else {
+    console.log(req);
+    res.send(200);
   }
 });
 
