@@ -205,8 +205,8 @@ app.post('/dialogflow', (req, res) => {
         console.error(error);
         // send the error back to Dialogflow
         return res.json({
-          speech: error,
-          displayText: error,
+          speech: error.message,
+          displayText: error.message,
         });
       });
   }
