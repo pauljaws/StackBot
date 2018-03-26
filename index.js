@@ -11,7 +11,7 @@ const {
 } = process.env;
 const apiaiApp = apiai(DF_ACCESS_TOKEN);
 const app = express();
-const genericError = new Error({ message: 'Sorry I couldn\'t find that.' });
+const genericError = new Error('Sorry I couldn\'t find that.');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -205,8 +205,8 @@ app.post('/dialogflow', (req, res) => {
         console.error(error);
         // send the error back to Dialogflow
         return res.json({
-          speech: error.message,
-          displayText: error.message,
+          speech: error,
+          displayText: error,
         });
       });
   }
