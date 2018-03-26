@@ -69,6 +69,15 @@ function handleMessage(senderPsid, receivedMessage) {
   }
 }
 
+// Sort StackShare API function results by popularity
+function sortByPopularity(toolTypes) {
+  const sortedToolTypes = toolTypes.sort((a, b) => (
+    b.popularity - a.popularity
+  ));
+
+  return sortedToolTypes;
+}
+
 // Find the StackShare "function" id for the given tooltype string
 function findToolTypeId(toolType) {
   const toolTypeSlug = slugify(toolType);
@@ -110,11 +119,13 @@ function lookupToolType(toolType) {
           `https://api.stackshare.io/v1/tools/lookup?function_id=${toolTypeId}&access_token=${SS_ACCESS_TOKEN}`,
           (err, res, body) => {
             if (!err && res.statusCode === 200) {
+              // Only sorting first page. If there are many results, we are not
+              // returning the proper result.
               console.log('Got functions from StackShare API.');
               const json = JSON.parse(body);
-              console.log(json[0]);
+              const sorted = sortByPopularity(json);
               // just return the top result
-              resolve(json[0]);
+              resolve(sorted[0]);
             } else {
               console.error(err);
               reject(genericError);
