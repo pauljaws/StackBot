@@ -121,6 +121,9 @@ function lookupToolType(toolType) {
             }
           },
         );
+      })
+      .catch((error) => {
+        reject(error);
       });
   });
 }
@@ -197,7 +200,8 @@ app.post('/dialogflow', (req, res) => {
           speech: message,
           displayText: message,
         });
-      }, (error) => {
+      })
+      .catch((error) => {
         console.error(error);
         // send the error back to Dialogflow
         return res.json({
