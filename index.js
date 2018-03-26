@@ -180,7 +180,7 @@ app.post('/webhook', (req, res) => {
 // Fulfillment webhook for Dialogflow
 app.post('/dialogflow', (req, res) => {
   console.log('Got request from DialogFlow');
-  console.log(req);
+  console.log(req.body.result);
   if (req.body.result.action === 'find-tool') {
     const toolType = req.body.result.parameters['tool-type'];
     // call StackShare API
@@ -202,6 +202,11 @@ app.post('/dialogflow', (req, res) => {
           displayText: error.message,
         });
       });
+  } else {
+    // not sure why this is being called for anything other than find-tool action
+    // handleMessage(req.body.sessionId, req.result.resolvedQuery);
+    console.log('Request for action other than find-tool');
+    console.log(req.body.result);
   }
 });
 
