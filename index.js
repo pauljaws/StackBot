@@ -11,6 +11,7 @@ const {
 } = process.env;
 const apiaiApp = apiai(DF_ACCESS_TOKEN);
 const app = express();
+const genericError = new Error({ message: 'Sorry I couldn\'t find that.' });
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -50,7 +51,7 @@ function handleMessage(senderPsid, receivedMessage) {
     // Send to Dialogflow for handling
     apiaiApp.textRequest(receivedMessage.text, { sessionId: senderPsid })
       .on('response', (response) => {
-        console.log('Response received from DialogFlow');
+        console.log('Response received from Dialogflow');
         console.log(response);
         sendToMessenger(senderPsid, response.result.fulfillment.speech);
       })
@@ -78,19 +79,19 @@ function findToolTypeId(toolType) {
         db.collection('functions').findOne(
           { slug: toolTypeSlug },
           (error, doc) => {
-            if (!err) {
+            if (!error) {
               console.log('Found tool type.');
               console.log(doc);
               resolve(doc.id);
             } else {
               console.error(error);
-              reject(error);
+              reject(genericError);
             }
           },
         );
       } else {
         console.error(err);
-        reject(err);
+        reject(genericError);
       }
     });
   });
@@ -106,12 +107,12 @@ function lookupToolType(toolType) {
           (err, res, body) => {
             if (!err && res.statusCode === 200) {
               console.log('Got functions from StackShare API.');
-              console.log(body);
+              console.log(body[0]);
               // just return the top result
               resolve(body[0]);
             } else {
               console.error(err);
-              reject(err);
+              reject(genericError);
             }
           },
         );
