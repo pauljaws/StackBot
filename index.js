@@ -184,6 +184,7 @@ app.post('/dialogflow', (req, res) => {
     // call StackShare API
     lookupToolType(toolType)
       .then((toolResult) => {
+        console.log('Tool result');
         console.log(toolResult);
         const message = formatToolTypeMsg(toolResult);
         // send the result back to Dialogflow
