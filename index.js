@@ -1,12 +1,13 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongodb = require('mongodb');
 const request = require('request');
 const apiai = require('apiai');
 const slugify = require('slugify');
 require('dotenv').config();
 
 const {
-  VERIFY_TOKEN, PAGE_TOKEN, DF_ACCESS_TOKEN, SS_ACCESS_TOKEN,
+  VERIFY_TOKEN, PAGE_TOKEN, DF_ACCESS_TOKEN, SS_ACCESS_TOKEN, MONGODB_URI,
 } = process.env;
 const apiaiApp = apiai(DF_ACCESS_TOKEN);
 const app = express();
@@ -70,8 +71,27 @@ function handleMessage(senderPsid, receivedMessage) {
 function findToolTypeId(toolType) {
   const toolTypeSlug = slugify(toolType);
 
-  return new Promise((resolve) => {
-    resolve(toolTypeSlug);
+  return new Promise((resolve, reject) => {
+    mongodb.MongoClient.connect(MONGODB_URI, (err, client) => {
+      if (!err) {
+        client.db.collection('functions').findOne(
+          { slug: toolTypeSlug },
+          (error, doc) => {
+            if (!err) {
+              console.log('Found tool type.');
+              console.log(doc);
+              resolve(doc.id);
+            } else {
+              console.error(error);
+              reject(error);
+            }
+          },
+        );
+      } else {
+        console.error(err);
+        reject(err);
+      }
+    });
   });
 }
 
@@ -83,9 +103,13 @@ function lookupToolType(toolType) {
         request.get(
           `https://api.stackshare.io/v1/tools/lookup?function_id=${toolTypeId}&access_token=${SS_ACCESS_TOKEN}`,
           (err, res, body) => {
-            if (!err) {
-              resolve(body);
+            if (!err && res.statusCode === 200) {
+              console.log('Got functions from StackShare API.');
+              console.log(body);
+              // just return the top result
+              resolve(body[0]);
             } else {
+              console.error(err);
               reject(err);
             }
           },
@@ -94,10 +118,10 @@ function lookupToolType(toolType) {
   });
 }
 
-// Handles messaging_postbacks events
-// function handlePostback(senderPsid, receivedPostback) {
-//
-// }
+// Transform StackShare API response into a human readable message
+function formatToolTypeMsg(data) {
+  return `The most popular ${data.function.name} tool on StackShare is ${data.name}`;
+}
 
 // Adds support for GET requests to our webhook
 app.get('/webhook', (req, res) => {
@@ -157,7 +181,7 @@ app.post('/dialogflow', (req, res) => {
     lookupToolType(toolType)
       .then((toolResult) => {
         console.log(toolResult);
-        const message = `The most popular ${toolType} tool on StackShare is ${toolResult.name}`;
+        const message = formatToolTypeMsg(toolResult);
         // send the result back to Dialogflow
         return res.json({
           speech: message,
