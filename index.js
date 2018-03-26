@@ -81,9 +81,12 @@ function findToolTypeId(toolType) {
           { slug: toolTypeSlug },
           (error, doc) => {
             if (!error) {
-              console.log('Found tool type.');
-              console.log(doc);
-              resolve(doc.id);
+              if (doc !== null) {
+                console.log('Found tool type.');
+                console.log(doc);
+                resolve(doc.id);
+              }
+              reject(genericError);
             } else {
               console.error(error);
               reject(genericError);
