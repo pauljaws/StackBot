@@ -141,7 +141,9 @@ function lookupToolType(toolType) {
 
 // Transform StackShare API response into a human readable message
 function formatToolTypeMsg(data) {
-  return `The most popular ${data.function.name} tool on StackShare is ${data.name}`;
+  return `The most popular ${data.function.name} tool on StackShare is ${data.name}.\n
+          ${data.company_stack_count} companies are using it in their stack.\n
+          Here's what people are saying about it: "${data.reasons[0].one_liner}"`;
 }
 
 // Adds support for GET requests to our webhook
