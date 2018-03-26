@@ -107,9 +107,10 @@ function lookupToolType(toolType) {
           (err, res, body) => {
             if (!err && res.statusCode === 200) {
               console.log('Got functions from StackShare API.');
-              console.log(body[0]);
+              const json = JSON.parse(body);
+              console.log(json[0]);
               // just return the top result
-              resolve(body[0]);
+              resolve(json[0]);
             } else {
               console.error(err);
               reject(genericError);
