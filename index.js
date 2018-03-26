@@ -2,11 +2,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 const apiai = require('apiai');
+const slugify = require('slugify');
 require('dotenv').config();
 
-const VERIFY_TOKEN = process.env.FB_VERIFY_TOKEN || '';
-const PAGE_TOKEN = process.env.FB_PAGE_TOKEN || '';
-const DF_ACCESS_TOKEN = process.env.DF_ACCESS_TOKEN || '';
+const {
+  VERIFY_TOKEN, PAGE_TOKEN, DF_ACCESS_TOKEN, SS_ACCESS_TOKEN,
+} = process.env;
 const apiaiApp = apiai(DF_ACCESS_TOKEN);
 const app = express();
 
@@ -65,14 +66,31 @@ function handleMessage(senderPsid, receivedMessage) {
   }
 }
 
+// Find the StackShare "function" id for the given tooltype string
+function findToolTypeId(toolType) {
+  const toolTypeSlug = slugify(toolType);
+
+  return new Promise((resolve) => {
+    resolve(toolTypeSlug);
+  });
+}
+
 // Hit the StackShare API to look up tools for a given type
-function findTool(toolType) {
+function lookupToolType(toolType) {
   return new Promise((resolve, reject) => {
-    if (toolType === 'message queue') {
-      resolve({ name: 'RabbitMQ' });
-    } else {
-      reject(new Error('I couldn\'t find that tool, sorry.'));
-    }
+    findToolTypeId(toolType)
+      .then((toolTypeId) => {
+        request.get(
+          `https://api.stackshare.io/v1/tools/lookup?function_id=${toolTypeId}&access_token=${SS_ACCESS_TOKEN}`,
+          (err, res, body) => {
+            if (!err) {
+              resolve(body);
+            } else {
+              reject(err);
+            }
+          },
+        );
+      });
   });
 }
 
@@ -136,10 +154,10 @@ app.post('/dialogflow', (req, res) => {
   if (req.body.result.action === 'find-tool') {
     const toolType = req.body.result.parameters['tool-type'];
     // call StackShare API
-    findTool(toolType)
+    lookupToolType(toolType)
       .then((toolResult) => {
         console.log(toolResult);
-        const message = `The most popular ${toolType} on StackShare is ${toolResult}`;
+        const message = `The most popular ${toolType} tool on StackShare is ${toolResult.name}`;
         // send the result back to Dialogflow
         return res.json({
           speech: message,
