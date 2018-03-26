@@ -74,8 +74,6 @@ function findToolTypeId(toolType) {
   return new Promise((resolve, reject) => {
     mongodb.MongoClient.connect(MONGODB_URI, (err, client) => {
       if (!err) {
-        console.log('mongo client object');
-        console.log(client);
         const db = client.db('heroku_lzls7pcp');
         db.collection('functions').findOne(
           { slug: toolTypeSlug },
@@ -178,6 +176,8 @@ app.post('/webhook', (req, res) => {
 
 // Fulfillment webhook for Dialogflow
 app.post('/dialogflow', (req, res) => {
+  console.log('Got request from DialogFlow');
+  console.log(req);
   if (req.body.result.action === 'find-tool') {
     const toolType = req.body.result.parameters['tool-type'];
     // call StackShare API
@@ -198,9 +198,6 @@ app.post('/dialogflow', (req, res) => {
           displayText: error.message,
         });
       });
-  } else {
-    console.log(req);
-    res.send(200);
   }
 });
 
