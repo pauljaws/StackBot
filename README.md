@@ -19,3 +19,7 @@ StackBot is also pretty one-dimensional. She's not much of a conversationalist y
 ## Future Improvements
 
 The future of StackBot is a much richer, conversational experience. A user should be able to get recommendations for tools based on their current stack (graph database? ML?). The bot should be able to respond to queries based on the context of the current conversation.
+
+## Demo
+
+You can try the demo [here](https://bot.dialogflow.com/5d45cb97-0956-4cef-b6a4-80ddc5cd8240).
