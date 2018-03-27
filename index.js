@@ -44,6 +44,8 @@ function findToolTypeId(toolType) {
               } else {
                 // if no match for the original query, try the plural form
                 const pluralSlug = slugify(pluralize(toolType));
+                console.log('Plural slug');
+                console.log(pluralSlug);
                 db.collection('functions').findOne(
                   { slug: pluralSlug },
                   (pluralError, pluralDoc) => {
