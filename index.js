@@ -27,7 +27,7 @@ function sortByPopularity(toolTypes) {
 // Find the StackShare "function" id for the given tooltype string
 function findToolTypeId(toolType) {
   // convert the user string to a slug for lookup
-  const toolTypeSlug = slugify(toolType);
+  const toolTypeSlug = slugify(toolType.toLowerCase());
 
   return new Promise((resolve, reject) => {
     mongodb.MongoClient.connect(MONGODB_URI, (err, client) => {
@@ -43,7 +43,7 @@ function findToolTypeId(toolType) {
                 resolve(doc.id);
               } else {
                 // if no match for the original query, try the plural form
-                const pluralSlug = slugify(pluralize(toolType));
+                const pluralSlug = slugify(pluralize(toolType.toLowerCase()));
                 console.log('Plural slug');
                 console.log(pluralSlug);
                 db.collection('functions').findOne(
