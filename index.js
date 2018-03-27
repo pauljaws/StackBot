@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const mongodb = require('mongodb');
 const request = require('request');
 const slugify = require('slugify');
+const pluralize = require('pluralize');
 require('dotenv').config();
 
 const {
@@ -25,6 +26,7 @@ function sortByPopularity(toolTypes) {
 
 // Find the StackShare "function" id for the given tooltype string
 function findToolTypeId(toolType) {
+  // convert the user string to a slug for lookup
   const toolTypeSlug = slugify(toolType);
 
   return new Promise((resolve, reject) => {
@@ -39,8 +41,23 @@ function findToolTypeId(toolType) {
                 console.log('Found tool type.');
                 console.log(doc);
                 resolve(doc.id);
+              } else {
+                // if no match for the original query, try the plural form
+                const pluralSlug = slugify(pluralize(toolType));
+                db.collection('functions').findOne(
+                  { slug: pluralSlug },
+                  (pluralError, pluralDoc) => {
+                    if (!error) {
+                      if (pluralDoc !== null) {
+                        console.log('Found plural tool type');
+                        console.log(pluralDoc);
+                        resolve(pluralDoc.id);
+                      }
+                    }
+                    reject(genericError);
+                  },
+                );
               }
-              reject(genericError);
             } else {
               console.error(error);
               reject(genericError);
